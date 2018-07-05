@@ -61,7 +61,7 @@ program modis_amsr
         !write(20,rec=irec) ii
         !irec=irec+1
         !write(20,rec=irec) jj
-        write(20,*) 901-ii,901-jj
+        write(20,*) 901-ii,jj
         ami(i,j)=901-ii
         amj(i,j)=901-jj
         
