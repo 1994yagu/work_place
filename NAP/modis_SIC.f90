@@ -128,7 +128,7 @@ program modis_amsr
      close(30);close(40)
      
            
-
+!設定終了日にループを抜ける
      if((tyr.eq.fy).and.(tdy.eq.fd).and.(tmn.eq.fm)) then
         exit
      endif

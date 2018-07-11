@@ -1,0 +1,26 @@
+program wind_factor
+
+  implicit none
+  integer,parameter :: X=888 ! original grid of x
+  integer,parameter :: Y=888 ! original grid of y
+  integer,parameter :: wx=48 ! outside window of x
+  integer,parameter :: wy=48 ! outside window of y
+  integer,parameter :: m=20 ! window scale
+  integer,parameter :: gx=(X-wx)/m ! drift speed grid
+  integer,parameter :: gy=(y-wy)/m ! drift speed grid
+
+  if ((hh1.ge.0).and.(hh1.lt.6)) then
+     wfile='win_moor/'//y1//mon//'/'//fy//mon//nd//'00_win.dat'
+  endif
+
+  if ((hh1.ge.6).and.(hh1.lt.12)) then
+     wfile='win_moor/'//y1//mon//'/'//fy//mon//nd//'06_win.dat'
+  endif
+
+  if ((hh1.ge.12).and.(hh1.lt.18)) then
+     wfile='win_moor/'//y1//mon//'/'//fy//mon//nd//'12_win.dat'
+  endif
+
+  if ((hh1.ge.18).and.(hh1.lt.24)) then
+     wfile='win_moor/'//y1//mon//'/'//fy//mon//nd//'18_win.dat'
+  endif

@@ -11,27 +11,39 @@ program roatation
   integer,parameter :: gx=(X-wx)/m ! drift speed grid
   integer,parameter :: gy=(y-wy)/m ! drift speed grid
   integer :: i,j,k
-  integer :: n,irec
+  integer :: n,irec,cc
   integer  :: yy1,yy2,dd1,dd2,mm1,mm2,hh1,hh2
   integer,dimension(:),allocatable :: yr,mn,hr
+  integer :: jday,mon1,mon2,day1,day2
   integer :: sum(gx,gy)
+  integer :: smonth
+  integer :: month,nday,year
   real :: rr,dx,dy,dv
-  real :: u(gx,gy),v(gx,gy),sok(gx,gy),r(gx,gy),rot(gx,gy)
-  real :: divx(gx,gy),divy(gx,gy),div(gx,gy)
+  real :: u(gx,gy),v(gx,gy),sok(gx,gy),sd(gx,gy)
+  real :: divx(gx,gy),divy(gx,gy),div(gx,gy),rot(gx,gy)
   real :: time
+  real :: ss
+  real,allocatable,dimension(:,:,:) :: r
   character :: filen*16,name*16,day*12,iyear*64
-  character*64 :: fname1,fname2,ifile,ofile
+  character*64 :: fname1,fname2,ifile,ofile,s_dir,o_dir
   character*2 :: m1,m2,h1,h2,win_scale
+  character*2 :: i_year,i_mon,i_day
   character*3 :: d1,d2
   character*4 :: y1,y2
+  character*2 :: tmonth
+ 
 
 ! open list file
 
-  iyear='201404_05'
+  iyear='201408_09'
+  smonth=8 !target month
+  write(tmonth,'(i2.2)') smonth
 
-  open(10,file=trim(adjustl(iyear))//'/cul_file1.txt',status='old')
-  open(20,file=trim(adjustl(iyear))//'/cul_file2.txt',status='old')
+  s_dir='/Users/yaguchi/HDD2/out/NAP_area/drift/'
+  o_dir='/Users/yaguchi/HDD2/out/NAP_area/'
 
+  open(10,file=trim(adjustl(s_dir))//trim(adjustl(iyear))//'/cul_file1.txt',status='old')
+  open(20,file=trim(adjustl(s_dir))//trim(adjustl(iyear))//'/cul_file2.txt',status='old')
 
   n=0
   do
@@ -43,6 +55,9 @@ program roatation
   print *,n
 
   rewind(10)
+
+  allocate(r(gx,gy,n))
+
 
 !  n=1
 
@@ -76,6 +91,8 @@ program roatation
      read(m1,*) mm1
      read(m2,*) mm2
 
+     !移動時間の計算
+     
      if(dd2.eq.dd1) then
         time=(real(hh2)*60.+real(mm2))*60.-(real(hh1)*60.+real(mm1))*60.
      else
@@ -83,10 +100,26 @@ program roatation
      endif
      
      if((time.le.3600).or.(time.ge.10800)) cycle
+     
+     !対象月チェック
+     year=yy1
+     jday=dd1    
+     call cal_nday(year,jday,month,nday)
+     mon1=month
+     day1=nday
 
-     open(70,file=trim(adjustl(iyear))//'/'//trim(adjustl(ifile))//'_'//win_scale//'.dat' &
+     i_year=y1(3:4)
+     write(i_mon,'(i2.2)') month
+     write(i_day,'(i2.2)') nday
+
+     if (month.ne.smonth) then
+        cycle
+     endif
+     
+
+     open(70,file=trim(adjustl(s_dir))//trim(adjustl(iyear))//'/'//trim(adjustl(ifile))//'_'//win_scale//'.dat' &
           & ,form='unformatted',recl=4,access='direct',status='old')
-     open(90,file='rot/'//trim(adjustl(ifile))//'_rot.txt',status='replace')
+     open(90,file=trim(adjustl(o_dir))//'rot/'//trim(adjustl(ifile))//'_rot.txt',status='replace')
      
      irec=0
      do j=1,gy
@@ -119,9 +152,9 @@ program roatation
            endif
 
            if((u(i-1,j).ne.999).and.(u(i+1,j).ne.999).and.(v(i,j-1).ne.999).and.(v(i,j+1).ne.999)) then
-              rr=(v(i+1,j)-v(i-1,j))/250*10*2.-(u(i,j+1)-u(i,j-1))/250*10*2.
-              dx=(u(i+1,j)-u(i-1,j))/250*10*2.
-              dy=(v(i,j+1)-v(i,j-1))/250*10*2.
+              rr=(v(i+1,j)-v(i-1,j))/(250*20*100*2.)-(u(i,j+1)-u(i,j-1))/(250*20*100*2.)
+              dx=(u(i+1,j)-u(i-1,j))/(250*20*100*2.)
+              dy=(v(i,j+1)-v(i,j-1))/(250*20*100*2.)
               dv=dx+dy
            else
               rr=999.
@@ -130,12 +163,12 @@ program roatation
               dv=999.
            endif
 
-           r(i,j)=rr
+           r(i,j,k)=rr
            divx(i,j)=dx
            divy(i,j)=dy
            div(i,j)=dv
 
-           write(90,*) r(i,j),div(i,j)
+           write(90,*) r(i,j,k),div(i,j)
 
            if(rr.ne.999) then
               rot(i,j)=rot(i,j)+rr
@@ -148,7 +181,7 @@ program roatation
 
   enddo
 
-  open(30,file='srot'//trim(adjustl(iyear))//'.txt',status='replace')
+  open(30,file=trim(adjustl(o_dir))//'rot/srot'//trim(adjustl(tmonth))//'.txt',status='replace')
 
   do j=1,gy
      do i=1,gx
@@ -160,8 +193,28 @@ program roatation
         else
            rot(i,j)=rot(i,j)/real(sum(i,j))
         endif
-        write(30,*) rot(i,j)
+
+        ss=0
+        cc=0
+        do k=1,n
+           if(r(i,j,k).ne.999) then
+              ss=(r(i,j,k)-rot(i,j))**2+ss
+              cc=cc+1
+           endif
+        enddo
+
+        if(cc.ne.0) then
+           ss=ss/real(cc)
+        endif
+
+        sd(i,j)=sqrt(ss)
+
+        write(30,*) rot(i,j),sum(i,j),sd(i,j)
+        
      enddo
   enddo
+   
+  
+                   
 
 endprogram roatation
