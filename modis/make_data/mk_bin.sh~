@@ -1,0 +1,30 @@
+#!/bin/sh
+
+
+s_dir='/Users/yaguchi/HDD2/data/NAP_area/201507_08/bin'
+o_dir=${s_dir}'data'
+
+[ ! -e $o_dir ] && mkdir -p $o_dir
+
+cat /dev/null > ${s_dir}/tfile.txt
+
+for f in MO*.dat
+do 
+	echo $f
+	name=`echo $f | cut -c 1-22`
+	echo ${name}.dat >> file.txt
+	mv $f ${name}.dat 
+	m=m+1
+done
+echo $m
+
+echo '' > file1.txt
+
+for f in MY*.dat
+do 
+	echo $f
+	name=`echo $f | cut -c 1-22`
+	echo ${name}.dat >> file1.txt
+	mv $f ${name}.dat 
+done
+
