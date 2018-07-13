@@ -25,7 +25,7 @@ program roatation
   real :: ss
   real,allocatable,dimension(:,:,:) :: r
   character :: filen*16,name*16,day*12,iyear*64
-  character*64 :: fname1,fname2,ifile,ofile,s_dir,o_dir
+  character*100 :: fname1,fname2,ifile,ofile,s_dir,o_dir,ts_dir
   character*2 :: m1,m2,h1,h2,win_scale
   character*2 :: i_year,i_mon,i_day
   character*3 :: d1,d2
@@ -35,15 +35,16 @@ program roatation
 
 ! open list file
 
-  iyear='201408_09'
-  smonth=8 !target month
+  iyear='201507_08'
+  smonth=7 !target month
   write(tmonth,'(i2.2)') smonth
 
   s_dir='/Users/yaguchi/HDD2/out/NAP_area/drift/'
+  ts_dir='/Users/yaguchi/HDD2/data/NAP_area/'//trim(adjustl(iyear))//'/bin/ref/'
   o_dir='/Users/yaguchi/HDD2/out/NAP_area/'
 
-  open(10,file=trim(adjustl(s_dir))//trim(adjustl(iyear))//'/cul_file1.txt',status='old')
-  open(20,file=trim(adjustl(s_dir))//trim(adjustl(iyear))//'/cul_file2.txt',status='old')
+  open(10,file=trim(adjustl(ts_dir))//'/cul_file1.txt',status='old')
+  open(20,file=trim(adjustl(ts_dir))//'/cul_file2.txt',status='old')
 
   n=0
   do
@@ -181,7 +182,7 @@ program roatation
 
   enddo
 
-  open(30,file=trim(adjustl(o_dir))//'rot/srot'//trim(adjustl(tmonth))//'.txt',status='replace')
+  open(30,file=trim(adjustl(o_dir))//'rot/srot'//trim(adjustl(y1))//trim(adjustl(tmonth))//'.txt',status='replace')
 
   do j=1,gy
      do i=1,gx
@@ -196,8 +197,9 @@ program roatation
 
         ss=0
         cc=0
+        
         do k=1,n
-           if(r(i,j,k).ne.999) then
+           if((r(i,j,k).ne.999).and.(rot(i,j).ne.999.)) then
               ss=(r(i,j,k)-rot(i,j))**2+ss
               cc=cc+1
            endif
@@ -205,11 +207,15 @@ program roatation
 
         if(cc.ne.0) then
            ss=ss/real(cc)
+           sd(i,j)=sqrt(ss)
+        else
+           ss=999.
+           sd(i,j)=ss
         endif
 
-        sd(i,j)=sqrt(ss)
+ 
 
-        write(30,*) rot(i,j),sum(i,j),sd(i,j)
+        write(30,*) rot(i,j),sum(i,j),sd(i,j),cc
         
      enddo
   enddo
